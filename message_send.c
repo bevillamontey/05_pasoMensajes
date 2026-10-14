@@ -1,24 +1,44 @@
-#include<iostream>
-#include<unistd.h>
-#include<sys/wait.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MSGSZ 128
 
-using namespace std;
-int main() {
-    pid_t pid=fork();
-    if(pid < 0){
-      cerr<< "No fue posible crear el proceso hijo " <<endl;
-      return 1;
-    } else if(pid ==0){
-      cout<<"Hijo: ejecutando ls..."<<endl;
-      execl("/bin/ls",ls,(char *)NULL);
-      cerr<<"Error al ejecutar ls"<<endl;
-      return 1;
-    }else{
-      cout<<"Padre : esperando al proceso hijo ..."<<endl;
-      wait(NULL);
-      cout<<"Padre:el proceso hijo ha terminado."<<endl;
-      
-    }
-    
-    return 0;
+
+typedef struct msgbuf
+{
+  long mtype;
+  char mtext[MSGSZ];
+} message_buf;
+
+main()
+{
+  int msqid;
+  int msgflg = IPC_CREAT | 0666;
+  key_t key;
+  message_buf sbuf;
+  message_buf rbuf;
+  size_t buf_length;
+  
+  key = 1234;
+
+if ((msqid = msgget(key, msgflg)) < 0)
+{
+perror("msgget()");
+exit(1);
+}
+
+sbuf.mtype = 1;
+
+(void)strcpy(sbuf.mtext, "¿Are you hearing me?");
+buf_length = strlen(sbuf.mtext) + 1;
+
+if (msgsnd(msqid, &sbuf, buf_length, IPC_NOWAIT) < 0)
+{
+    perror("msgsnd");
+    exit(1);
+}
+exit(0);
 }
