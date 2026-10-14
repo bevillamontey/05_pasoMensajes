@@ -13,7 +13,7 @@ typedef struct msgbuf
   char mtext[MSGSZ]; 
 } message_buf;
 
-main()
+int main()
 {
 
 int msqid;
